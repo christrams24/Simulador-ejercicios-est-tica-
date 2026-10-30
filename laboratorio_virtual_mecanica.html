@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratorio virtual de Mecánica</title>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--ink:#172338;--muted:#617089;--blue:#2563eb;--line:#dce4ef;--green:#15803d;--red:#dc2626;--orange:#ea580c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,Segoe UI,Arial,sans-serif}
+header{background:linear-gradient(120deg,#10233f,#1d4d83);color:white;padding:28px max(22px,calc((100% - 1180px)/2))}
+header h1{margin:0;font-size:clamp(24px,4vw,36px)}header p{margin:6px 0 0;color:#d7e6fa}
+main{max-width:1180px;margin:22px auto;padding:0 18px 40px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tab{border:1px solid var(--line);background:#fff;color:var(--ink);padding:11px 16px;border-radius:12px;font-weight:700;cursor:pointer}
+.tab.active{background:var(--blue);border-color:var(--blue);color:white}
+.panel{display:none}.panel.active{display:block}
+.layout{display:grid;grid-template-columns:minmax(260px,350px) 1fr;gap:18px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 5px 18px #18345b0a}
+.card h2,.card h3{margin:0 0 12px}.card h2{font-size:21px}.card h3{font-size:17px}
+.control{margin:15px 0}.control label{display:flex;justify-content:space-between;gap:10px;font-weight:650}
+.control output{color:var(--blue);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--blue);margin:9px 0 0}
+small,.muted{color:var(--muted)}.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.metric{background:#f5f8fc;border:1px solid var(--line);border-radius:12px;padding:12px}
+.metric span{display:block;color:var(--muted);font-size:12px}.metric strong{font-size:20px;font-variant-numeric:tabular-nums}
+.status{margin-top:14px;border-radius:12px;padding:12px 14px;font-weight:750}
+.status.good{background:#e9f8ef;color:#166534}.status.warn{background:#fff4e5;color:#9a3412}.status.bad{background:#feecec;color:#991b1b}
+.visual{min-height:310px}.visual svg{width:100%;height:auto;min-height:280px;display:block}
+.chart-wrap{margin-top:16px}.chart-wrap canvas{width:100%;height:270px;display:block}
+details{margin-top:15px;border-top:1px solid var(--line);padding-top:12px}summary{cursor:pointer;font-weight:700}
+.formula{background:#f5f8fc;border-radius:10px;padding:11px;margin:8px 0;font-family:ui-monospace,monospace;white-space:normal}
+.note{font-size:13px;color:var(--muted);margin-top:12px}
+footer{text-align:center;color:var(--muted);font-size:13px;margin-top:24px}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<header>
+  <h1>⚙️ Laboratorio virtual de Mecánica</h1>
+  <p>Estática, fricción y dinámica de cuerpos rígidos · Simulaciones interactivas</p>
+</header>
+<main>
+<nav class="tabs" aria-label="Módulos">
+  <button class="tab active" data-tab="box">1 · Caja horizontal</button>
+  <button class="tab" data-tab="incline">2 · Plano inclinado</button>
+  <button class="tab" data-tab="cabinet">3 · Armario: deslizar o volcar</button>
+</nav>
+
+<section id="box" class="panel active">
+<div class="layout">
+ <div class="card">
+  <h2>Configuración de la caja</h2>
+  <div class="control"><label>Masa <output id="m1v">25 kg</output></label><input id="m1" type="range" min="1" max="100" step=".5" value="25"></div>
+  <div class="control"><label>Fricción estática μs <output id="mus1v">0.40</output></label><input id="mus1" type="range" min="0" max="1" step=".01" value=".40"></div>
+  <div class="control"><label>Fricción cinética μk <output id="muk1v">0.30</output></label><input id="muk1" type="range" min="0" max="1" step=".01" value=".30"></div>
+  <div class="control"><label>Fuerza aplicada P <output id="p1v">50 N</output></label><input id="p1" type="range" min="0" max="250" step="1" value="50"></div>
+  <div class="metrics">
+   <div class="metric"><span>Fuerza normal N</span><strong id="n1">245.25 N</strong></div>
+   <div class="metric"><span>Fricción estática máxima</span><strong id="fs1">98.10 N</strong></div>
+   <div class="metric"><span>Fricción actual f</span><strong id="f1">50.00 N</strong></div>
+   <div class="metric"><span>Aceleración</span><strong id="a1">0.00 m/s²</strong></div>
+  </div>
+  <div id="state1" class="status good">En reposo (equilibrio estático)</div>
+  <details><summary>¿Qué fórmulas se utilizan?</summary>
+   <div class="formula">W = mg</div><div class="formula">N = mg</div>
+   <div class="formula">fs,máx = μs N</div><div class="formula">Si P ≤ fs,máx: f = P y a = 0</div>
+   <div class="formula">Si P &gt; fs,máx: fk = μk N; a = (P − fk)/m</div>
+  </details>
+ </div>
+ <div>
+  <div class="card visual"><h3>Diagrama de cuerpo libre</h3><svg id="svg1" viewBox="0 0 620 300" role="img" aria-label="Diagrama de cuerpo libre de una caja"></svg><p class="note">Las longitudes de las flechas se ajustan a los valores y se normalizan para mantener visible el diagrama.</p></div>
+  <div class="card chart-wrap"><h3>Fuerza aplicada vs. fricción</h3><canvas id="chart1" width="900" height="330"></canvas></div>
+ </div>
+</div>
+</section>
+
+<section id="incline" class="panel">
+<div class="layout">
+ <div class="card">
+  <h2>Configuración del plano</h2>
+  <div class="control"><label>Masa <output id="m2v">15 kg</output></label><input id="m2" type="range" min="1" max="100" step=".5" value="15"></div>
+  <div class="control"><label>Ángulo θ <output id="thetaV">35°</output></label><input id="theta" type="range" min="0" max="60" step="1" value="35"></div>
+  <div class="control"><label>Fricción estática μs <output id="mus2v">0.45</output></label><input id="mus2" type="range" min="0" max="1" step=".01" value=".45"></div>
+  <div class="control"><label>Fricción cinética μk <output id="muk2v">0.35</output></label><input id="muk2" type="range" min="0" max="1" step=".01" value=".35"></div>
+  <div class="control"><label>Fuerza paralela P <output id="p2v">0 N</output></label><input id="p2" type="range" min="-300" max="300" step="1" value="0"></div>
+  <div class="metrics">
+   <div class="metric"><span>Wx = mg sen θ</span><strong id="wx2">84.37 N</strong></div>
+   <div class="metric"><span>Wy = mg cos θ</span><strong id="wy2">120.44 N</strong></div>
+   <div class="metric"><span>P mínima antideslizamiento</span><strong id="pmin2">30.17 N</strong></div>
+   <div class="metric"><span>P para iniciar subida</span><strong id="pmax2">138.57 N</strong></div>
+  </div>
+  <div id="alone2" class="status warn">Evaluando deslizamiento...</div>
+  <div id="state2" class="status good">En equilibrio estático</div>
+  <p class="note">P positiva apunta cuesta arriba; P negativa apunta cuesta abajo. Los umbrales Pmín y Pmáx se calculan para una fuerza cuesta arriba.</p>
+  <details><summary>¿Qué fórmulas se utilizan?</summary>
+   <div class="formula">Wx = mg sen θ; Wy = mg cos θ; N = Wy</div>
+   <div class="formula">Pmín = máx(0, Wx − μs Wy)</div>
+   <div class="formula">Pmáx = Wx + μs Wy</div>
+   <div class="formula">Sin P, desliza si Wx &gt; μs Wy</div>
+   <div class="formula">En movimiento: a = (P − Wx − fricción con signo)/m</div>
+  </details>
+ </div>
+ <div class="card visual"><h3>Diagrama de cuerpo libre sobre el plano</h3><svg id="svg2" viewBox="0 0 620 390" role="img" aria-label="Diagrama de cuerpo libre en plano inclinado"></svg><p class="note">Eje paralelo al plano positivo cuesta arriba. Wx apunta cuesta abajo y Wy es perpendicular al plano.</p></div>
+</div>
+</section>
+
+<section id="cabinet" class="panel">
+<div class="layout">
+ <div class="card">
+  <h2>Configuración del armario</h2>
+  <div class="control"><label>Masa M <output id="Mv">60 kg</output></label><input id="M" type="range" min="5" max="300" step="1" value="60"></div>
+  <div class="control"><label>Altura H <output id="Hv">1.80 m</output></label><input id="H" type="range" min=".5" max="3" step=".05" value="1.8"></div>
+  <div class="control"><label>Ancho B <output id="Bv">0.60 m</output></label><input id="B" type="range" min=".2" max="2" step=".05" value=".6"></div>
+  <div class="control"><label>Fricción estática μs <output id="mus3v">0.40</output></label><input id="mus3" type="range" min="0" max="1" step=".01" value=".40"></div>
+  <div class="control"><label>Altura de aplicación h <output id="hv">1.20 m</output></label><input id="h" type="range" min="0" max="1.8" step=".05" value="1.2"></div>
+  <div class="control"><label>Ángulo α hacia abajo <output id="alphav">20°</output></label><input id="alpha" type="range" min="0" max="60" step="1" value="20"></div>
+  <div class="metrics">
+   <div class="metric"><span>Altura crítica (α = 0°)</span><strong id="hcrit">0.750 m</strong></div>
+   <div class="metric"><span>Umbral de deslizamiento</span><strong id="pslide">—</strong></div>
+   <div class="metric"><span>Umbral de vuelco</span><strong id="ptip">—</strong></div>
+   <div class="metric"><span>Peso Mg</span><strong id="weight3">588.60 N</strong></div>
+  </div>
+  <div id="state3" class="status good">Comparando modos de falla...</div>
+  <p class="note">Se considera la fuerza aplicada en la cara posterior, dirigida hacia el frente y hacia abajo. El pivote está en la esquina inferior delantera.</p>
+  <details><summary>¿Qué fórmulas se utilizan?</summary>
+   <div class="formula">Px = P cos α; Py = P sen α (hacia abajo)</div>
+   <div class="formula">Deslizamiento: Pdes = μs Mg / (cos α − μs sen α)</div>
+   <div class="formula">Vuelco: Pvuelco = (Mg B/2) / (h cos α − B sen α)</div>
+   <div class="formula">hcrítica = B/(2 μs), para fuerza horizontal (α = 0°)</div>
+   <p>La componente vertical hacia abajo aumenta la normal y modifica el momento de la fuerza respecto al pivote. Si un denominador es cero o negativo, ese modo no se alcanza con esta dirección de fuerza.</p>
+  </details>
+ </div>
+ <div class="card visual"><h3>Geometría, centro de gravedad y pivote</h3><svg id="svg3" viewBox="0 0 620 430" role="img" aria-label="Diagrama de armario con fuerza aplicada y pivote"></svg><p class="note">La fuerza P se descompone en Px horizontal y Py vertical hacia abajo. El brazo de palanca se mide respecto al pivote delantero.</p></div>
+</div>
+</section>
+<footer>Modelo educativo ideal · g = 9.81 m/s² · Los resultados se actualizan al mover los controles.</footer>
+</main>
+<script>
+const G=9.81, $=id=>document.getElementById(id), val=id=>Number($(id).value);
+const fmt=(x,d=2)=>Number.isFinite(x)?x.toFixed(d):"∞";
+function setOut(id,text){$(id).textContent=text}
+function arrow(x1,y1,x2,y2,color,label,dx=0,dy=0){
+ return `<defs><marker id="arr${color.replace('#','')}" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="${color}"/></marker></defs><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3" marker-end="url(#arr${color.replace('#','')})"/><text x="${x2+dx}" y="${y2+dy}" fill="${color}" font-size="15" font-weight="700">${label}</text>`;
+}
+function updateBox(){
+ const m=val('m1'),mus=val('mus1'),muk=val('muk1'),P=val('p1'),W=m*G,N=W,fsmax=mus*N,moving=P>fsmax+1e-8;
+ const f=moving?muk*N:P,a=moving?(P-f)/m:0;
+ [['m1v',m+' kg'],['mus1v',mus.toFixed(2)],['muk1v',muk.toFixed(2)],['p1v',P+' N'],['n1',fmt(N)+' N'],['fs1',fmt(fsmax)+' N'],['f1',fmt(f)+' N'],['a1',fmt(a)+' m/s²']].forEach(x=>setOut(...x));
+ $('state1').className='status '+(moving?'warn':'good');setOut('state1',moving?'En movimiento (dinámico)':'En reposo (equilibrio estático)');
+ const s=2.05/Math.max(W,P,f,1), bx=300, by=150, vW=Math.min(W*s,95),vP=Math.min(P*s,130),vF=Math.min(f*s,130);
+ $('svg1').innerHTML=`<line x1="65" y1="220" x2="555" y2="220" stroke="#27364b" stroke-width="4"/><rect x="240" y="150" width="120" height="70" rx="5" fill="#a8d8ed" stroke="#145374" stroke-width="3"/><text x="300" y="190" text-anchor="middle" font-size="18" fill="#17324d">Caja</text>
+ ${arrow(bx,150,bx,150-vW,'#15803d','N',10,-5)}${arrow(bx,220,bx,220+vW,'#263445','W',10,15)}
+ ${arrow(360,185,360+vP,185,'#dc2626','P',8,-8)}${arrow(240,185,240-vF,185,'#ea580c','f',-18,-8)}
+ <text x="300" y="270" text-anchor="middle" fill="#617089" font-size="13">Superficie horizontal</text>`;
+ drawChart(P,fsmax,muk*N);
+}
+function drawChart(P,fsmax,fk){
+ const c=$('chart1'),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+ const L=65,R=22,T=22,B=48,pmax=Math.max(250,fsmax*1.2),fmax=Math.max(fsmax,fk,1)*1.25;
+ const X=x=>L+x/pmax*(w-L-R),Y=y=>h-B-y/fmax*(h-T-B);
+ ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(L,T);ctx.lineTo(L,h-B);ctx.lineTo(w-R,h-B);ctx.stroke();
+ ctx.fillStyle='#526176';ctx.font='14px Arial';ctx.fillText('Fricción f (N)',8,16);ctx.fillText('Fuerza aplicada P (N)',w/2-65,h-10);
+ for(let i=0;i<=4;i++){let v=fmax*i/4;ctx.fillText(v.toFixed(0),8,Y(v)+4);ctx.strokeStyle='#e6ebf2';ctx.beginPath();ctx.moveTo(L,Y(v));ctx.lineTo(w-R,Y(v));ctx.stroke();}
+ for(let i=0;i<=5;i++){let v=pmax*i/5;ctx.fillText(v.toFixed(0),X(v)-10,h-B+20);}
+ ctx.strokeStyle='#2563eb';ctx.lineWidth=4;ctx.beginPath();
+ for(let i=0;i<=250;i++){let p=pmax*i/250,f=p<=fsmax?p:fk;i?ctx.lineTo(X(p),Y(f)):ctx.moveTo(X(p),Y(f));}ctx.stroke();
+ ctx.setLineDash([7,5]);ctx.strokeStyle='#dc2626';ctx.beginPath();ctx.moveTo(X(fsmax),T);ctx.lineTo(X(fsmax),h-B);ctx.stroke();ctx.setLineDash([]);
+ let fc=P<=fsmax?P:fk;ctx.fillStyle='#dc2626';ctx.beginPath();ctx.arc(X(P),Y(fc),7,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#9a3412';ctx.fillText('Límite estático',Math.min(X(fsmax)+7,w-120),T+15);
+}
+function updateIncline(){
+ const m=val('m2'),th=val('theta')*Math.PI/180,mus=val('mus2'),muk=val('muk2'),P=val('p2'),W=m*G,wx=W*Math.sin(th),wy=W*Math.cos(th),N=wy,fs=mus*N;
+ const pmin=Math.max(0,wx-fs),pmax=wx+fs,slides=wx>fs+1e-8,drive=P-wx;
+ let f,a,state;
+ if(Math.abs(drive)<=fs+1e-8){f=Math.abs(drive);a=0;state='En equilibrio estático';}
+ else{let dir=Math.sign(drive);f=muk*N;a=(drive-dir*f)/m;state=a>0?'Desliza cuesta arriba':'Desliza cuesta abajo';}
+ [['m2v',m+' kg'],['thetaV',val('theta')+'°'],['mus2v',mus.toFixed(2)],['muk2v',muk.toFixed(2)],['p2v',P+' N'],['wx2',fmt(wx)+' N'],['wy2',fmt(wy)+' N'],['pmin2',fmt(pmin)+' N'],['pmax2',fmt(pmax)+' N']].forEach(x=>setOut(...x));
+ $('alone2').className='status '+(slides?'warn':'good');setOut('alone2',slides?'Con P = 0, el bloque desliza por sí solo cuesta abajo.':'Con P = 0, la fricción estática puede mantener el bloque en reposo.');
+ $('state2').className='status '+(a===0?'good':'warn');setOut('state2',`${state} · fricción ${fmt(f)} N · aceleración ${fmt(a)} m/s²`);
+ const deg=val('theta'),ang=th,cx=320,cy=215,L=210,ex=cx+L*Math.cos(ang),ey=cy-L*Math.sin(ang);
+ const ux=Math.cos(ang),uy=-Math.sin(ang),nx=Math.sin(ang),ny=Math.cos(ang),bx=cx,by=cy-25;
+ const sc=1.25/Math.max(W,Math.abs(P),1),len=v=>Math.min(Math.abs(v)*sc*80,105);
+ const pLen=len(P),fLen=len(f),wxLen=len(wx),wyLen=len(wy),nLen=len(N);
+ const pdir=Math.sign(P),fdir=drive>0?-1:1;
+ let svg=`<line x1="65" y1="340" x2="${ex+80}" y2="${ey+80}" stroke="#27364b" stroke-width="5"/>`;
+ svg+=`<g transform="translate(${cx-42},${cy-38}) rotate(${-deg})"><rect x="0" y="0" width="84" height="55" rx="5" fill="#a8d8ed" stroke="#145374" stroke-width="3"/><text x="42" y="33" text-anchor="middle" font-size="15" fill="#17324d">Bloque</text></g>`;
+ // Vectores en coordenadas SVG.
+ // Compose each arrow with unique marker IDs and SVG-safe vector directions.
+ const ar=(x1,y1,x2,y2,col,label,dx=0,dy=0)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="3" marker-end="url(#tip)"/><text x="${x2+dx}" y="${y2+dy}" fill="${col}" font-size="14" font-weight="700">${label}</text>`;
+ svg=`<defs><marker id="tip" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L0 6 L6 3Z" fill="context-stroke"/></marker></defs><line x1="65" y1="340" x2="${ex+80}" y2="${ey+80}" stroke="#27364b" stroke-width="5"/><g transform="translate(${cx-42},${cy-38}) rotate(${-deg})"><rect width="84" height="55" rx="5" fill="#a8d8ed" stroke="#145374" stroke-width="3"/><text x="42" y="33" text-anchor="middle" font-size="15" fill="#17324d">Bloque</text></g>`;
+ svg+=ar(cx,cy,cx,cy+Math.min(wxLen+50,120),'#263445','W');
+ svg+=ar(cx,cy,cx-ux*wxLen,cy-uy*wxLen,'#7c3aed','Wx',-20,5);
+ svg+=ar(cx,cy,cx-nx*wyLen,cy-ny*wyLen,'#64748b','Wy',-25,-5);
+ svg+=ar(cx,cy,cx+nx*nLen,cy-ny*nLen,'#15803d','N',8,-5);
+ svg+=ar(cx,cy,cx+fdir*ux*fLen,cy-fdir*uy*fLen,'#ea580c','f',8,-8);
+ if(P!==0)svg+=ar(cx,cy,cx+pdir*ux*pLen,cy-pdir*uy*pLen,'#dc2626','P',8,15);
+ svg+=`<text x="80" y="370" fill="#617089" font-size="13">θ = ${deg}°</text>`;
+ $('svg2').innerHTML=svg;
+}
+function updateCabinet(){
+ const M=val('M'),H=val('H'),B=val('B'),mu=val('mus3'),h=val('h'),alpha=val('alpha')*Math.PI/180,W=M*G;
+ const denS=Math.cos(alpha)-mu*Math.sin(alpha),arm=h*Math.cos(alpha)-B*Math.sin(alpha);
+ const ps=denS>1e-10?mu*W/denS:Infinity,pt=arm>1e-10?W*B/(2*arm):Infinity,hc=mu>0?B/(2*mu):Infinity;
+ [['Mv',M+' kg'],['Hv',H.toFixed(2)+' m'],['Bv',B.toFixed(2)+' m'],['mus3v',mu.toFixed(2)],['hv',h.toFixed(2)+' m'],['alphav',val('alpha')+'°'],['hcrit',fmt(hc,3)+' m'],['pslide',fmt(ps)+' N'],['ptip',fmt(pt)+' N'],['weight3',fmt(W)+' N']].forEach(x=>setOut(...x));
+ let msg,cls;if(!Number.isFinite(ps)&&!Number.isFinite(pt)){msg='Con esta dirección de fuerza no se alcanza ninguno de los dos modos en el modelo.';cls='warn';}
+ else if(ps<pt){msg='EL ARMARIO DESLIZA PRIMERO';cls='good';}
+ else if(pt<ps){msg='EL ARMARIO VOLCARÁ PRIMERO';cls='bad';}
+ else{msg='Ambos modos de falla tienen el mismo umbral.';cls='warn';}
+ $('state3').className='status '+cls;setOut('state3',msg);
+ const left=150,top=48,scale=Math.min(210/H,260/B),bw=B*scale,bh=H*scale,base=top+bh,px=left,py=base-h*scale, pivotX=left+bw,pivotY=base;
+ const cx=left+bw/2,cy=top+bh/2,ar=alpha,plen=105;
+ const ax=px+plen*Math.cos(ar),ay=py+plen*Math.sin(ar);
+ const marker=`<defs><marker id="cabArrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0 0 L0 6 L7 3Z" fill="context-stroke"/></marker></defs>`;
+ const line=(x1,y1,x2,y2,color,label,dx=8,dy=-6)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3" marker-end="url(#cabArrow)"/><text x="${x2+dx}" y="${y2+dy}" fill="${color}" font-size="14" font-weight="700">${label}</text>`;
+ let svg=marker+`<line x1="70" y1="${base}" x2="550" y2="${base}" stroke="#27364b" stroke-width="4"/><rect x="${left}" y="${top}" width="${bw}" height="${bh}" fill="#c9d6df" stroke="#334e68" stroke-width="3"/><circle cx="${cx}" cy="${cy}" r="6" fill="#172338"/><text x="${cx+12}" y="${cy-9}" font-size="14" font-weight="700">CG</text>`;
+ svg+=line(cx,cy,cx,cy+85,'#263445','Mg',10,10);
+ svg+=`<circle cx="${px}" cy="${py}" r="6" fill="#dc2626"/><text x="${px-4}" y="${py-14}" fill="#dc2626" font-size="13">Aplicación</text>`;
+ svg+=line(px,py,ax,ay,'#dc2626','P',8,4);
+ // Componentes de la fuerza
+ svg+=line(px,py,px+85*Math.cos(ar),py,'#ea580c','Px',5,-7);
+ svg+=line(px,py,px,py+70*Math.sin(ar),'#7c3aed','Py',8,13);
+ svg+=`<path d="M ${pivotX-13} ${pivotY+15} L ${pivotX+13} ${pivotY+15} L ${pivotX} ${pivotY-5} Z" fill="#ea580c"/><text x="${pivotX+18}" y="${pivotY+15}" fill="#c2410c" font-size="13">Pivote</text>`;
+ svg+=`<line x1="${left-22}" y1="${py}" x2="${left-22}" y2="${base}" stroke="#7c3aed" stroke-dasharray="4 4"/><text x="${left-37}" y="${(py+base)/2}" fill="#7c3aed" font-size="14">h</text>`;
+ svg+=`<line x1="${left}" y1="${base+27}" x2="${pivotX}" y2="${base+27}" stroke="#7c3aed" stroke-width="2"/><text x="${cx}" y="${base+45}" text-anchor="middle" fill="#7c3aed" font-size="14">B = ${B.toFixed(2)} m</text>`;
+ svg+=`<text x="390" y="55" fill="#617089" font-size="13">α = ${val('alpha')}° hacia abajo</text><text x="390" y="78" fill="#617089" font-size="13">h = ${h.toFixed(2)} m</text>`;
+ $('svg3').innerHTML=svg;
+}
+function bind(ids,fn){ids.forEach(id=>$(id).addEventListener('input',fn));}
+bind(['m1','mus1','muk1','p1'],updateBox);
+bind(['m2','theta','mus2','muk2','p2'],updateIncline);
+bind(['M','H','B','mus3','h','alpha'],updateCabinet);
+$('H').addEventListener('input',()=>{$('h').max=$('H').value;if(val('h')>val('H'))$('h').value=$('H').value;updateCabinet()});
+document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
+ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b===btn));
+ document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===btn.dataset.tab));
+}));
+updateBox();updateIncline();updateCabinet();
+</script>
+</body>
+</html>
